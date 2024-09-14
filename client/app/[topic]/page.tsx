@@ -22,7 +22,11 @@ const Page = async ({ params }: PageProps) => {
   }
   await redis.incr("served-requests");
 
-  return <ClientPage initialData={words} topicName={topic} isOwner={true} />;
+  const user = await redis.hget("topicAdmins", topic);
+
+  return (
+    <ClientPage initialData={words} topicName={topic} user={user as string} />
+  );
 };
 
 export default Page;

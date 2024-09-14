@@ -1,8 +1,9 @@
 import { Icons } from "@/components/Icon";
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
+import { Navbar } from "@/components/Navbar";
 import TopicCreator from "@/components/TopicCreater";
 import { redis } from "@/lib/redis";
-import { Star } from "lucide-react";
+import { Loader, Star } from "lucide-react";
 import Link from "next/link";
 
 // Dummy function to simulate fetching topics from Redis
@@ -33,6 +34,7 @@ export default async function Home() {
 
   return (
     <section className="min-h-screen bg-grid-zinc-50">
+      <Navbar />
       <MaxWidthWrapper className="relative pb-24 pt-10 sm:pb-32 lg:pt-24 xl:pt-32 lg:pb-52">
         <div className="hidden lg:block absolute inset-0 top-8">
           {/* circle */}

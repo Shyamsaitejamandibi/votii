@@ -6,15 +6,22 @@ import { Input } from "./ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { createTopic } from "@/app/actions";
 import { useRouter } from "next/navigation";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { Loader } from "lucide-react";
 
 const TopicCreator = () => {
   const [input, setInput] = useState<string>("");
-  const userId = "2";
   const router = useRouter();
 
   const { mutate, error, isPending } = useMutation({
     mutationFn: createTopic,
   });
+  const { data, isLoading } = useCurrentUser();
+  if (!data) {
+    return null;
+  }
+  const { _id } = data;
+  const userId = _id;
 
   const handleCreateTopic = () => {
     mutate(
@@ -37,6 +44,10 @@ const TopicCreator = () => {
       }
     );
   };
+
+  if (isLoading) {
+    return <Loader className="size-4 animate-spin text-muted-foreground" />;
+  }
 
   return (
     <div className="mt-12 flex flex-col gap-2">

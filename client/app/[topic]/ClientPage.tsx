@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { submitComment } from "../actions";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const COLORS = ["#143059", "#2F6B9A", "#82a6c2"];
 const MAX_WORDS = 100;
@@ -33,13 +34,14 @@ interface Word {
 interface ClientPageProps {
   topicName: string;
   initialData: Word[];
-  isOwner: boolean;
+  user: string;
 }
 
 const getRotationDegree = () =>
   (Math.random() > 0.5 ? 60 : -60) * Math.random();
 
-const ClientPage = ({ topicName, initialData, isOwner }: ClientPageProps) => {
+const ClientPage = ({ topicName, initialData, user }: ClientPageProps) => {
+  const { data } = useCurrentUser();
   const [words, setWords] = useState<Word[]>(initialData);
   const [input, setInput] = useState("");
   const [layoutOptions, setLayoutOptions] = useState({
@@ -101,6 +103,16 @@ const ClientPage = ({ topicName, initialData, isOwner }: ClientPageProps) => {
   ) => {
     setLayoutOptions((prev) => ({ ...prev, [option]: value }));
   };
+
+  if (!data) {
+    return null;
+  }
+  const { _id } = data;
+
+  let isOwner = false;
+  if (user === _id) {
+    isOwner = true;
+  }
 
   return (
     <div className="w-full flex flex-col items-center justify-center min-h-screen bg-grid-zinc-50 pb-10">
@@ -210,7 +222,12 @@ const ClientPage = ({ topicName, initialData, isOwner }: ClientPageProps) => {
             />
             <Button
               disabled={isPending || !input.trim()}
-              onClick={() => mutate({ comment: input.trim(), topicName })}
+              onClick={() =>
+                mutate({
+                  comment: input.trim(),
+                  topicName,
+                })
+              }
             >
               Share
             </Button>

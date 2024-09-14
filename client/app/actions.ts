@@ -21,6 +21,7 @@ export const createTopic = async ({
   }
 
   // Check if the topic already exists
+  console.log(userId);
   const topicExists = await redis.sismember("existing-topics", topicName);
 
   let role;
@@ -35,9 +36,6 @@ export const createTopic = async ({
     // Topic exists, assign role as user
     role = "user";
   }
-
-  // Store topic creator ID, regardless of role
-  await redis.set(`topic:${topicName}:creator`, userId);
 
   // Return the role
   revalidatePath(`/`);
