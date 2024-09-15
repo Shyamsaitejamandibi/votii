@@ -21,7 +21,17 @@ const io = new Server(server, {
 });
 
 sunRedis.on("message", async (room, message) => {
-  io.to(room).emit("room-update", message);
+  const parsedMessage = JSON.parse(message);
+
+  // If the message contains word data, emit to "room-update" event
+  if (parsedMessage.words) {
+    io.to(room).emit("room-update", message);
+  }
+
+  // If the message contains layout options, emit to "updateWordCloud" event
+  if (parsedMessage.layoutOptions) {
+    io.to(room).emit("updateWordCloud", message);
+  }
 });
 
 sunRedis.on("error", (err) => {
@@ -48,6 +58,13 @@ io.on("connection", async (socket) => {
       });
     }
   });
+
+  // Handle layout options changes from the owner
+  socket.on("update-layout-options", async (room, layoutOptions) => {
+    const message = JSON.stringify({ layoutOptions });
+    await redis.publish(room, message); // Publish layout options to the room
+  });
+
   socket.on("disconnect", async () => {
     const { id } = socket;
 

@@ -1,6 +1,7 @@
+import { CardSpotlightDemo } from "@/components/CardSpotLight";
 import { Icons } from "@/components/Icon";
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
-import { Navbar } from "@/components/Navbar";
+import { AnimatedNumberBasic } from "@/components/RequestServed";
 import TopicCreator from "@/components/TopicCreater";
 import { redis } from "@/lib/redis";
 import { Loader, Star } from "lucide-react";
@@ -21,9 +22,7 @@ async function getTopics() {
 function TopicCard({ id, title }: { id: string; title: string }) {
   return (
     <Link href={`/${id}`} className="block">
-      <div className="p-6 rounded-lg shadow-lg bg-white hover:bg-gray-100 transition-colors cursor-pointer">
-        <h2 className="text-lg font-semibold">{title}</h2>
-      </div>
+      <CardSpotlightDemo title={title} />
     </Link>
   );
 }
@@ -34,7 +33,6 @@ export default async function Home() {
 
   return (
     <section className="min-h-screen bg-grid-zinc-50">
-      <Navbar />
       <MaxWidthWrapper className="relative pb-24 pt-10 sm:pb-32 lg:pt-24 xl:pt-32 lg:pb-52">
         <div className="hidden lg:block absolute inset-0 top-8">
           {/* circle */}
@@ -69,12 +67,12 @@ export default async function Home() {
                   <Star className="h-4 w-4 text-green-600 fill-green-600" />
                 </div>
 
-                <p>
+                <div>
                   <span className="font-semibold">
-                    {Number(servedRequests)}
+                    <AnimatedNumberBasic served={Number(servedRequests)} />
                   </span>{" "}
                   served requests
-                </p>
+                </div>
               </div>
             </div>
 

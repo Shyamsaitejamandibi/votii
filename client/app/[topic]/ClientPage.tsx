@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 import { Wordcloud } from "@visx/wordcloud";
 import { Text } from "@visx/text";
 import { scaleLog } from "@visx/scale";
@@ -46,7 +46,7 @@ const ClientPage = ({ topicName, initialData, user }: ClientPageProps) => {
   const [input, setInput] = useState("");
   const [layoutOptions, setLayoutOptions] = useState({
     font: "Impact",
-    spiral: "archimedean" as const,
+    spiral: "archimedean",
     withRotation: false,
   });
 
@@ -55,31 +55,45 @@ const ClientPage = ({ topicName, initialData, user }: ClientPageProps) => {
   useEffect(() => {
     socket.emit("join-room", `room:${topicName}`);
 
+    const handleRoomStyle = (message: string) => {
+      const { layoutOptions: newLayoutOptions } = JSON.parse(message);
+      if (newLayoutOptions) {
+        setLayoutOptions((prevLayoutOptions) => ({
+          ...prevLayoutOptions,
+          ...newLayoutOptions,
+        }));
+      }
+    };
+
     const handleRoomUpdate = (message: string) => {
-      const newWords = JSON.parse(message) as Word[];
-      setWords((prevWords) => {
-        const updatedWords = new Map(
-          prevWords.map((word) => [word.text, word])
-        );
-        newWords.forEach((newWord) => {
-          if (updatedWords.has(newWord.text)) {
-            const existingWord = updatedWords.get(newWord.text)!;
-            updatedWords.set(newWord.text, {
-              ...existingWord,
-              value: existingWord.value + newWord.value,
-            });
-          } else if (updatedWords.size < MAX_WORDS) {
-            updatedWords.set(newWord.text, newWord);
-          }
+      const newWords = JSON.parse(message).words as Word[];
+      if (newWords) {
+        setWords((prevWords) => {
+          const updatedWords = new Map(
+            prevWords.map((word) => [word.text, word])
+          );
+          newWords.forEach((newWord) => {
+            if (updatedWords.has(newWord.text)) {
+              const existingWord = updatedWords.get(newWord.text)!;
+              updatedWords.set(newWord.text, {
+                ...existingWord,
+                value: existingWord.value + newWord.value,
+              });
+            } else if (updatedWords.size < MAX_WORDS) {
+              updatedWords.set(newWord.text, newWord);
+            }
+          });
+          return Array.from(updatedWords.values());
         });
-        return Array.from(updatedWords.values());
-      });
+      }
     };
 
     socket.on("room-update", handleRoomUpdate);
+    socket.on("updateWordCloud", handleRoomStyle);
 
     return () => {
       socket.off("room-update", handleRoomUpdate);
+      socket.off("updateWordCloud", handleRoomStyle);
       socket.disconnect();
     };
   }, [topicName, socket]);
@@ -102,17 +116,21 @@ const ClientPage = ({ topicName, initialData, user }: ClientPageProps) => {
     value: any
   ) => {
     setLayoutOptions((prev) => ({ ...prev, [option]: value }));
+
+    // Emit layout changes only if the user is the owner
+    if (isOwner) {
+      socket.emit("update-layout-options", `room:${topicName}`, {
+        ...layoutOptions,
+        [option]: value,
+      });
+    }
   };
 
   if (!data) {
     return null;
   }
   const { _id } = data;
-
-  let isOwner = false;
-  if (user === _id) {
-    isOwner = true;
-  }
+  const isOwner = user === _id;
 
   return (
     <div className="w-full flex flex-col items-center justify-center min-h-screen bg-grid-zinc-50 pb-10">
@@ -132,7 +150,7 @@ const ClientPage = ({ topicName, initialData, user }: ClientPageProps) => {
             fontSize={(word) => fontScale(word.value)}
             font={layoutOptions.font}
             padding={2}
-            spiral={layoutOptions.spiral}
+            spiral={layoutOptions.spiral as "archimedean" | "rectangular"}
             rotate={layoutOptions.withRotation ? getRotationDegree : 0}
             random={() => 0.5}
           >
@@ -187,8 +205,8 @@ const ClientPage = ({ topicName, initialData, user }: ClientPageProps) => {
                   <SelectValue placeholder="Select spiral" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="archimedean">Rectangle</SelectItem>
-                  <SelectItem value="rectangular">Aechimedean</SelectItem>
+                  <SelectItem value="archimedean">Archimedean</SelectItem>
+                  <SelectItem value="rectangular">Rectangular</SelectItem>
                 </SelectContent>
               </Select>
 

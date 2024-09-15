@@ -10,20 +10,25 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { LogOut } from "lucide-react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { Skeleton } from "./ui/skeleton";
 
 export const UserButton = () => {
   const { signOut } = useAuthActions();
   const { data, isLoading } = useCurrentUser();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center">
+        <Skeleton className="h-10 w-10 rounded-full" />
+      </div>
+    );
   }
 
   if (!data) {
     return null;
   }
 
-  const { image, name, email } = data;
+  const { image, name } = data;
 
   const avatarFallback = name!.charAt(0).toUpperCase();
   return (

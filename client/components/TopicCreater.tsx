@@ -8,6 +8,7 @@ import { createTopic } from "@/app/actions";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Loader } from "lucide-react";
+import { Skeleton } from "./ui/skeleton";
 
 const TopicCreator = () => {
   const [input, setInput] = useState<string>("");
@@ -18,7 +19,14 @@ const TopicCreator = () => {
   });
   const { data, isLoading } = useCurrentUser();
   if (!data) {
-    return null;
+    return (
+      <div className="mt-12 flex flex-col gap-2">
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-10 w-20" />
+        </div>
+      </div>
+    );
   }
   const { _id } = data;
   const userId = _id;
@@ -46,7 +54,14 @@ const TopicCreator = () => {
   };
 
   if (isLoading) {
-    return <Loader className="size-4 animate-spin text-muted-foreground" />;
+    return (
+      <div className="mt-12 flex flex-col gap-2">
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-64 bg-white" />
+          <Skeleton className="h-10 w-20" />
+        </div>
+      </div>
+    );
   }
 
   return (
