@@ -37,8 +37,7 @@
     "socket.io-client": "^4.7.5",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "three": "^0.168.0",
-    "convex": "^0.0.66"
+    "three": "^0.168.0"
   },
   "devDependencies": {
     "@types/d3-scale-chromatic": "^3.0.3",
