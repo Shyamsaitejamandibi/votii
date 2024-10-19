@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 
 const redis = new Redis(process.env.REDIS_CONNECTION_STRING);
-const sunRedis = new Redis(process.env.REDIS_CONNECTION_STRING);
+const subRedis = new Redis(process.env.REDIS_CONNECTION_STRING);
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -20,7 +20,7 @@ const io = new Server(server, {
   },
 });
 
-sunRedis.on("message", async (room, message) => {
+subRedis.on("message", async (room, message) => {
   const parsedMessage = JSON.parse(message);
 
   // If the message contains word data, emit to "room-update" event
@@ -34,7 +34,7 @@ sunRedis.on("message", async (room, message) => {
   }
 });
 
-sunRedis.on("error", (err) => {
+subRedis.on("error", (err) => {
   console.error("Redis error", err);
 });
 
@@ -48,7 +48,7 @@ io.on("connection", async (socket) => {
     await redis.sadd(`rooms:${id}`, room);
     await redis.hincrby("room-connections", room, 1);
     if (!subscribedRooms.includes(room)) {
-      sunRedis.subscribe(room, async (err) => {
+      subRedis.subscribe(room, async (err) => {
         if (err) {
           console.log(err);
         } else {
@@ -81,7 +81,7 @@ io.on("connection", async (socket) => {
       if (remainingConnections <= 0) {
         await redis.hdel(`room-connections`, room);
 
-        sunRedis.unsubscribe(room, async (err) => {
+        subRedis.unsubscribe(room, async (err) => {
           if (err) {
             console.error("Failed to unsubscribe", err);
           } else {
